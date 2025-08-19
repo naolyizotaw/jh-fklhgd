@@ -1,17 +1,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Global full-screen layout resets */
-html, body, #root {
-	height: 100%;
-}
-body {
-	margin: 0;
-	-webkit-font-smoothing: antialiased;
-}
-
-/* Optional: hide scrollbars on login background overflow */
-body.no-scroll {
-	overflow: hidden;
-}

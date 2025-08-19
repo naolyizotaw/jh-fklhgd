@@ -1,105 +1,113 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+const Login = () => {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
 
-export default function Login() {
-  const navigate = useNavigate();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setSuccess("Login successful!");
-        localStorage.setItem("token", data.token);
-        // Check if admin and redirect
         try {
-          const payload = JSON.parse(atob(data.token.split(".")[1]));
-          if (payload.role === "admin") {
-            setTimeout(() => navigate("/admin/dashboard"), 500);
-          } else if (payload.role === 'manager') {
-            setTimeout(() => navigate('/manager/home'), 500);
-          } else if (payload.role === 'user') {
-            setTimeout(() => navigate('/user/home'), 500);
-          } else {
-            setTimeout(() => navigate('/login'), 500);
-          }
-        } catch {}
-      } else {
-        setError(data.message || "Login failed");
-      }
-    } catch (err) {
-      setError("Network error");
-    }
-  };
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            });
 
-  return (
-  <div className="w-screen h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-black text-white relative overflow-hidden">
-      {/* Decorative shapes */}
-      <div className="absolute inset-0 opacity-20 pointer-events-none">
-        <div className="w-72 h-72 bg-fuchsia-600 rounded-full blur-3xl absolute -top-10 -left-10 mix-blend-screen"></div>
-        <div className="w-96 h-96 bg-indigo-700 rounded-full blur-3xl absolute bottom-0 right-0 mix-blend-screen"></div>
-      </div>
-      <div className="relative z-10 w-full max-w-5xl grid md:grid-cols-2 gap-10 p-6">
-        {/* Left panel */}
-        <div className="bg-white/5 backdrop-blur-sm rounded-xl p-10 flex flex-col justify-center shadow-2xl border border-white/10">
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-orange-400 rounded-md flex items-center justify-center font-extrabold">F</div>
-              <span className="text-2xl font-extrabold tracking-wide">FRMS</span>
-            </div>
-            <h1 className="text-5xl font-extrabold leading-tight">Welcome!</h1>
-            <p className="mt-6 text-sm text-purple-100 leading-relaxed max-w-sm">
-              Secure Role-Based Access for the FRMS platform. Log in with your administrator credentials to manage users and permissions.
-            </p>
-            <button type="button" className="mt-8 inline-block bg-gradient-to-r from-pink-500 to-orange-400 px-5 py-2 rounded-md text-sm font-medium shadow hover:brightness-110 transition">Learn More</button>
-          </div>
-        </div>
-        {/* Right panel: form */}
-        <div className="bg-white/10 backdrop-blur-md rounded-xl p-10 shadow-2xl flex flex-col justify-center border border-white/10">
-          <h2 className="text-3xl font-bold mb-6 text-center">Sign In</h2>
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {error && <div className="text-red-400 text-sm bg-red-900/30 border border-red-700 px-3 py-2 rounded">{error}</div>}
-            {success && <div className="text-green-300 text-sm bg-green-900/30 border border-green-700 px-3 py-2 rounded">{success}</div>}
-            <div>
-              <label className="block text-xs uppercase tracking-wide mb-2 text-purple-200">Username</label>
-              <input
-                type="text"
-                className="w-full px-4 py-3 rounded-md bg-white/10 border border-white/20 focus:border-pink-400 focus:ring-2 focus:ring-pink-500/40 outline-none transition placeholder-purple-300 text-sm"
-                placeholder="Enter username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs uppercase tracking-wide mb-2 text-purple-200">Password</label>
-              <input
-                type="password"
-                className="w-full px-4 py-3 rounded-md bg-white/10 border border-white/20 focus:border-pink-400 focus:ring-2 focus:ring-pink-500/40 outline-none transition placeholder-purple-300 text-sm"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <button type="submit" className="w-full py-3 rounded-md bg-gradient-to-r from-pink-500 via-orange-400 to-pink-500 text-white font-semibold shadow-lg hover:brightness-110 transition">Submit</button>
-            
-          </form>
-        </div>
-      </div>
-    </div>
-  );
-}
+            const data = await response.json();
 
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to login');
+            }
+
+            const { token } = data;
+            localStorage.setItem('token', token);
+
+            // Decode the token to get the role
+            const decodedPayload = JSON.parse(atob(token.split('.')[1]));
+            const userRole = decodedPayload.role;
+            localStorage.setItem('role', userRole);
+
+            // Redirect based on role
+            switch (userRole) {
+                case 'admin':
+                    navigate('/admin');
+                    break;
+                case 'manager':
+                    navigate('/manager');
+                    break;
+                case 'user':
+                    navigate('/user');
+                    break;
+                default:
+                    setError('Invalid role specified.');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('role');
+                    break;
+            }
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex">
+            {/* Left Pane: Branding */}
+            <div className="hidden lg:flex w-1/2 bg-emerald-700 items-center justify-center">
+                <div className="text-white text-center">
+                    <h1 className="text-5xl font-bold mb-4">Vehicle Management</h1>
+                    <p className="text-xl">Your one-stop solution for fleet control.</p>
+                </div>
+            </div>
+
+            {/* Right Pane: Login Form */}
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-100">
+                <div className="max-w-md w-full">
+                    <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Login</h2>
+                    {error && <p className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</p>}
+                    <form onSubmit={handleSubmit}>
+                        <div className="mb-4">
+                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
+                                Username
+                            </label>
+                            <input
+                                id="username"
+                                type="text"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                className="w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:border-emerald-500"
+                                required
+                            />
+                        </div>
+                        <div className="mb-6">
+                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+                                Password
+                            </label>
+                            <input
+                                id="password"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:border-emerald-500"
+                                required
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            className="w-full bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-emerald-700 transition duration-300"
+                        >
+                            Login
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Login;
