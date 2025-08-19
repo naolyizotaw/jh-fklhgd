@@ -1,37 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 
-export default function ManagerHome() {
-  const navigate = useNavigate();
+const ManagerHome = () => {
+    return (
+        <div className="min-h-screen flex">
+            {/* Sidebar */}
+            <aside className="w-64 bg-gray-800 text-white p-6">
+                <h2 className="text-2xl font-bold mb-6">Manager Menu</h2>
+                <ul>
+                    <li className="mb-4">
+                        <a href="#" className="hover:text-emerald-400">Dashboard</a>
+                    </li>
+                    <li className="mb-4">
+                        <a href="#" className="hover:text-emerald-400">Assigned Vehicles</a>
+                    </li>
+                    <li className="mb-4">
+                        <a href="#" className="hover:text-emerald-400">Reports</a>
+                    </li>
+                </ul>
+            </aside>
 
-  const [loading, setLoading] = useState(true);
-  const [username, setUsername] = useState('');
+            {/* Main Content */}
+            <main className="flex-1 p-8 bg-gray-100">
+                <h1 className="text-3xl font-bold text-gray-800 mb-6">Welcome, Manager!</h1>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                    <p>This is the main content area. Future features for managing assigned vehicles will be displayed here.</p>
+                </div>
+            </main>
+        </div>
+    );
+};
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return navigate('/login');
-    fetch('/api/users/me', { headers: { Authorization: `Bearer ${token}` }})
-      .then(async r => { if (!r.ok) throw new Error('unauth'); return r.json(); })
-      .then(data => {
-        if (data.role === 'admin') return navigate('/admin/dashboard');
-        if (data.role === 'user') return navigate('/user/home');
-        if (data.role !== 'manager') return navigate('/login');
-        setUsername(data.username || '');
-        setLoading(false);
-      })
-      .catch(() => { localStorage.removeItem('token'); navigate('/login'); });
-  }, [navigate]);
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-900 via-fuchsia-900 to-black text-white">
-      <div className="bg-white/10 backdrop-blur-md p-10 rounded-xl shadow-2xl border border-white/10 text-center max-w-md w-full">
-        <h1 className="text-4xl font-bold mb-4">Manager Portal</h1>
-  <p className="text-fuchsia-200 mb-6 text-sm">{loading ? 'Loading...' : `Welcome ${username || 'Manager'}. A management dashboard will appear here soon.`}</p>
-        <button
-          onClick={() => { localStorage.removeItem('token'); navigate('/login'); }}
-          className="px-6 py-2 rounded-md bg-gradient-to-r from-fuchsia-500 to-pink-400 font-semibold shadow hover:brightness-110 transition"
-        >Logout</button>
-      </div>
-    </div>
-  );
-}
+export default ManagerHome;
